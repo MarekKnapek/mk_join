@@ -65,7 +65,6 @@ void mk_join_c::process_frame()
 
 	assert(!m_frames.empty());
 	auto& frame = m_frames.top();
-	bool visited = false;
 	line_buff_t line_buff;
 	std::string_view guard;
 	while(frame.m_ifs)
@@ -88,20 +87,12 @@ void mk_join_c::process_frame()
 				if(!guard.contains(' '))
 				{
 					auto const itb = m_guards.emplace(guard);
-					visited = !itb.second;
-				}
-			}
-		}
-		else if(frame.m_line_nr == 2)
-		{
-			if(visited)
-			{
-				static auto const s_guard_prefix_2 = "#define "sv;
-				if(line_view.starts_with(s_guard_prefix_2) && line_view.ends_with(guard))
-				{
-					m_ofs << "/* Canceled by mk_join. */\n"sv;
-					m_ofs << "#endif\n"sv;
-					break;
+					bool const visited = !itb.second;
+					if(visited)
+					{
+						m_ofs << "/* Canceled by mk_join. */\n"sv;
+						break;
+					}
 				}
 			}
 		}
